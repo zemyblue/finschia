@@ -14,12 +14,15 @@ env:
   registry: docker.io
   repository: finschia/finschianode
 jobs:
-  build:
+  build-docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: check git status
+        run: |
+          git status
       - name: Create a context for buildx
         run: docker context create buildx
       - name: Set up docker buildx
