@@ -27,7 +27,8 @@ jobs:
           fetch-depth: 0
       - name: check git status
         run: |
-          git status
+          git status \
+          && ls -al
       - name: Create a context for buildx
         run: docker context create buildx
       - name: Set up docker buildx
