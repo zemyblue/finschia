@@ -2,9 +2,9 @@ name: "Release Build"
 
 on:
   push:
-    tags: # Push events to matching v*, i.e. v20.15.10, v0.1.2-rc34
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
+#    tags: # Push events to matching v*, i.e. v20.15.10, v0.1.2-rc34
+#      - "v[0-9]+.[0-9]+.[0-9]+"
+#      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
 
 jobs:
   create_tarball:
@@ -29,211 +29,338 @@ jobs:
             finschia-${{ env.VERSION }}.tgz.md5
             finschia-${{ env.VERSION }}.tgz.sha256
 
-  build_for_linux:
-    name: "Release Build for Linux"
-    needs: create_tarball
+  build_for_linux_static:
+    name: "Release Build for Linux(static)"
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ amd64, arm64 ]
+        arch: [ amd64 ]
         include:
           - arch: amd64
-            cc: x86_64-linux-gnu-gcc
-            cxx: x86_64-linux-gnu-g++
-            libwasmvm: libwasmvm.x86_64.so
-          - arch: arm64
-            cc: aarch64-linux-gnu-gcc
-            cxx: aarch64-linux-gnu-g++
-            libwasmvm: libwasmvm.aarch64.so
+            libwasmvm: libwasmvm_muslc.x86_64.a
+#          - arch: arm64
+#            libwasmvm: libwasmvm_muslc.aarch64.a
     steps:
       - name: "Set tag as version"
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+      - uses: actions/checkout@v3
       - name: "Update runtime"
         run: |
           sudo apt update
           sudo apt upgrade -y
-          sudo apt install -y build-essential g++-x86-64-linux-gnu g++-aarch64-linux-gnu wget
+          sudo apt install -y build-essential g++-x86-64-linux-gnu
       - name: "Install go"
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: 1.18
           check-latest: true
-      - name: "Print go environment for debugging"
-        run: go env
-      - name: "Download compressed repository source"
-        uses: actions/download-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-      - name: "Extract compressed repository source"
-        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1
-
+      - name: "Download libwasmvm"
+        run: |
+          WASMVM_VERSION=`go list -m github.com/Finschia/wasmvm | awk '{print $2}' | grep -E -o 'v([0-9]{1,3}[\.]){2}[0-9]{1,3}\-([0-9]{1,3}[\.]){2}[0-9]{1,3}'`
+          echo ${WASMVM_VERSION}
+          curl -L -f -o ./checksums.txt https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/checksums.txt
+          curl -L -f -o /lib/${{ matrix.libwasmvm }}  https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/${{ matrix.libwasmvm }}
+          CHECKSUM=`grep ${{ matrix.libwasmvm }} ./checksums.txt | awk '{print $1}'`
+          if [ -z "${CHECKSUM}" ]
+          then
+            echo "ERROR: ${{ matrix.libwasmvm }}"
+            cat ./checksums.txt
+            exit 1
+          fi
+          sha256sum /lib/${{ matrix.libwasmvm }} | grep "${CHECKSUM}"
+          ln -s /lib/${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
       - name: "Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}"
         run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: "Build release bundle: linux-${{ matrix.arch }}"
         run: |
           go env -w GOARCH=${{ matrix.arch }}
-          make clean build-release-bundle CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
+          BUILD_TAGS=muslc LINK_STATICALLY=true make build CGO_ENABLED=1
       - name: "Create checksum: linux-${{ matrix.arch }}"
         run: |
-          cd ./build
-          ls -laF
-          md5sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.md5
-          sha256sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.sha256
-      - name: "Store artifact: linux-${{ matrix.arch }}"
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-          path: |
-            ./build/finschia-${{ env.ID }}.tgz
-            ./build/finschia-${{ env.ID }}.md5
-            ./build/finschia-${{ env.ID }}.sha256
+          ls -laF /go/bin/
+          md5sum /go/bin/fnsad
 
-  build_for_darwin:
-    name: "Release Build for macOS"
-    needs: create_tarball
-    runs-on: macOS-latest
-    strategy:
-      matrix:
-        arch: [ "amd64", "arm64" ]
-        include:
-          - arch: amd64
-            libwasmvm: libwasmvm.dylib
-          - arch: arm64
-            libwasmvm: libwasmvm.dylib
-    steps:
-      - name: "Set tag as version"
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
-      - name: "Setup Xcode"
-        run: sudo xcode-select --switch /Applications/Xcode.app
-      - name: "Install md5sum"
-        run: |
-          brew update
-          brew install md5sha1sum
-      - name: "Install go"
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.18'
-          check-latest: true
-      - name: "Print go environment"
-        run: go env
-      - name: "Download compressed repository source"
-        uses: actions/download-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-      - name: "Extract compressed repository source"
-        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1
+  #  build_for_linux_static:
+#    name: "Release Build for Linux(static)"
+##    needs: create_tarball
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        arch: [ amd64, arm64 ]
+#        include:
+#          - arch: amd64
+#            cc: x86_64-linux-gnu-gcc
+#            cxx: x86_64-linux-gnu-g++
+#            libwasmvm: libwasmvm_muslc.x86_64.a
+#          - arch: arm64
+#            processor: aarch64
+#            cc: aarch64-linux-gnu-gcc
+#            cxx: aarch64-linux-gnu-g++
+#            libwasmvm: libwasmvm_muslc.aarch64.a
+#    steps:
+##      - name: "Set tag as version"
+##        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+##      - name: "Update runtime"
+##        run: |
+##          sudo apt update
+##          sudo apt upgrade -y
+##          sudo apt install -y build-essential g++-x86-64-linux-gnu g++-aarch64-linux-gnu wget
+##      - uses: actions/checkout@v3
+##      - name: "Install go"
+##        uses: actions/setup-go@v3
+##        with:
+##          go-version: '1.18'
+##          check-latest: true
+##      - name: "Print go environment for debugging"
+##        run: go env
+##      - name: "Download compressed repository source"
+##        uses: actions/download-artifact@v3
+##        with:
+##          name: release-${{ env.VERSION }}
+#
+##      - name: "Extract compressed repository source"
+##        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1
+##      - name: "Download libwasmvm"
+##        run: |
+##          WASMVM_VERSION=`go list -m github.com/Finschia/wasmvm | awk '{print $2}' | grep -o 'v\d\+\.\d\+\.\d\+-\d\+\.\d\+\.\d\+'`
+##          curl -L -f -o ./checksums.txt https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/checksums.txt
+##          curl -L -f -o /lib/${{ matrix.libwasmvm }}  https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/${{ matrix.libwasmvm }}
+##          CHECKSUM=`grep ${{ matrix.libwasmvm }} ./checksums.txt | awk '{print $1}'`
+##          if [ -z "${CHECKSUM}" ]
+##          then
+##            echo "ERROR: ${{ matrix.libwasmvm }}"
+##            cat ./checksums.txt
+##            exit 1
+##          fi
+##          sha256sum /lib/${{ matrix.libwasmvm }} | grep "${CHECKSUM}"
+##          ln -s /lib/${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
+##      - name: "Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}"
+##        run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
+#      - name: "Build release bundle: linux-${{ matrix.arch }}"
+#        run: |
+#          go env -w GOARCH=${{ matrix.arch }}
+##          make clean build-release-bundle CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
+#          BUILD_TAGS=muslc LINK_STATICALLY=true make install
+#      - name: "Create checksum: linux-${{ matrix.arch }}"
+#        run: |
+#          cd ./build
+#          ls -laF
+##          md5sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.md5
+##          sha256sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.sha256
+##      - name: "Store artifact: linux-${{ matrix.arch }}"
+##        uses: actions/upload-artifact@v3
+##        with:
+##          name: release-${{ env.VERSION }}
+##          path: |
+##            ./build/finschia-${{ env.ID }}.tgz
+##            ./build/finschia-${{ env.ID }}.md5
+##            ./build/finschia-${{ env.ID }}.sha256
 
-      - name: "Set ID=${{ env.VERSION }}-darwin-${{ matrix.arch }}"
-        run: echo "ID=${{ env.VERSION }}-darwin-${{ matrix.arch }}" >> $GITHUB_ENV
-      - name: "Build release bundle: darwin-${{ matrix.arch }}"
-        run: |
-          go env -w GOARCH=${{ matrix.arch }}
-          make clean build-release-bundle
-      - name: "Create checksum: darwin-${{ matrix.arch }}"
-        run: |
-          cd ./build
-          ls -laF
-          md5sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.md5
-          shasum -a 256 finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.sha256
-      - name: "Store artifact: darwin-${{ matrix.arch }}"
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-          path: |
-            ./build/finschia-${{ env.ID }}.tgz
-            ./build/finschia-${{ env.ID }}.md5
-            ./build/finschia-${{ env.ID }}.sha256
+#  build_for_linux:
+#    name: "Release Build for Linux"
+#    needs: create_tarball
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        arch: [ amd64, arm64 ]
+#        include:
+#          - arch: amd64
+#            cc: x86_64-linux-gnu-gcc
+#            cxx: x86_64-linux-gnu-g++
+#            libwasmvm: libwasmvm.x86_64.so
+#          - arch: arm64
+#            cc: aarch64-linux-gnu-gcc
+#            cxx: aarch64-linux-gnu-g++
+#            libwasmvm: libwasmvm.aarch64.so
+#    steps:
+#      - name: "Set tag as version"
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#      - name: "Update runtime"
+#        run: |
+#          sudo apt update
+#          sudo apt upgrade -y
+#          sudo apt install -y build-essential g++-x86-64-linux-gnu g++-aarch64-linux-gnu wget
+#      - name: "Install go"
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: '1.18'
+#          check-latest: true
+#      - name: "Print go environment for debugging"
+#        run: go env
+#      - name: "Download compressed repository source"
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#      - name: "Extract compressed repository source"
+#        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1
+#
+#      - name: "Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}"
+#        run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
+#      - name: "Build release bundle: linux-${{ matrix.arch }}"
+#        run: |
+#          go env -w GOARCH=${{ matrix.arch }}
+#          make clean build-release-bundle CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
+#      - name: "Create checksum: linux-${{ matrix.arch }}"
+#        run: |
+#          cd ./build
+#          ls -laF
+#          md5sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.md5
+#          sha256sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.sha256
+#      - name: "Store artifact: linux-${{ matrix.arch }}"
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#          path: |
+#            ./build/finschia-${{ env.ID }}.tgz
+#            ./build/finschia-${{ env.ID }}.md5
+#            ./build/finschia-${{ env.ID }}.sha256
 
-  create_release:
-    name: "Create Release"
-    needs: [ build_for_linux, build_for_darwin ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Set tag as version"
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#  build_for_darwin:
+#    name: "Release Build for macOS"
+#    needs: create_tarball
+#    runs-on: macOS-latest
+#    strategy:
+#      matrix:
+#        arch: [ "amd64", "arm64" ]
+#        include:
+#          - arch: amd64
+#            libwasmvm: libwasmvm.dylib
+#          - arch: arm64
+#            libwasmvm: libwasmvm.dylib
+#    steps:
+#      - name: "Set tag as version"
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#      - name: "Setup Xcode"
+#        run: sudo xcode-select --switch /Applications/Xcode.app
+#      - name: "Install md5sum"
+#        run: |
+#          brew update
+#          brew install md5sha1sum
+#      - name: "Install go"
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: '1.18'
+#          check-latest: true
+#      - name: "Print go environment"
+#        run: go env
+#      - name: "Download compressed repository source"
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#      - name: "Extract compressed repository source"
+#        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1
+#
+#      - name: "Set ID=${{ env.VERSION }}-darwin-${{ matrix.arch }}"
+#        run: echo "ID=${{ env.VERSION }}-darwin-${{ matrix.arch }}" >> $GITHUB_ENV
+#      - name: "Build release bundle: darwin-${{ matrix.arch }}"
+#        run: |
+#          go env -w GOARCH=${{ matrix.arch }}
+#          make clean build-release-bundle
+#      - name: "Create checksum: darwin-${{ matrix.arch }}"
+#        run: |
+#          cd ./build
+#          ls -laF
+#          md5sum finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.md5
+#          shasum -a 256 finschia-${{ env.ID }}.tgz > ./finschia-${{ env.ID }}.sha256
+#      - name: "Store artifact: darwin-${{ matrix.arch }}"
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#          path: |
+#            ./build/finschia-${{ env.ID }}.tgz
+#            ./build/finschia-${{ env.ID }}.md5
+#            ./build/finschia-${{ env.ID }}.sha256
 
-      - name: "Download artifacts"
-        uses: actions/download-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-      - name: "Extract compressed repository source"
-        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1 finschia-${{ env.VERSION }}/RELEASE_NOTE.md
-      - name: "List artifact files for debugging"
-        run: "ls -laF"
-      - name: "Create build report"
-        run: |
-          echo "App: finschia" > build_report.txt
-          echo "Version: ${{ env.VERSION }}" >> build_report.txt
-          echo "Commit: ${{ github.sha }}" >> build_report.txt
-          echo "Checksums MD5:" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}-linux-amd64.md5`" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}-linux-arm64.md5`" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}.tgz.md5`" >> build_report.txt
-          echo "Checksums SHA256:" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}-linux-amd64.sha256`" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}-linux-arm64.sha256`" >> build_report.txt
-          echo "  `cat finschia-${{ env.VERSION }}.tgz.sha256`" >> build_report.txt
-      - name: "Create release note"
-        run: |
-          cat ./RELEASE_NOTE.md > release_note.txt
-          echo '' >> release_note.txt
-          echo '```text' >> release_note.txt
-          cat ./build_report.txt >> release_note.txt
-          echo '```' >> build_report.txt
-      - name: "Create release"
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body_path: ./release_note.txt
-          draft: true
-          prerelease: false
-
-      - name: "Upload artifact: finschia-${{ env.VERSION }}-linux-amd64"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: finschia-${{ env.VERSION }}-linux-amd64.tgz
-          asset_name: finschia-${{ env.VERSION }}-linux-amd64.tgz
-          asset_content_type: application/octet-stream
-      - name: "Upload artifact: finschia-${{ env.VERSION }}-linux-arm64"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: finschia-${{ env.VERSION }}-linux-arm64.tgz
-          asset_name: finschia-${{ env.VERSION }}-linux-arm64.tgz
-          asset_content_type: application/octet-stream
-      - name: "Upload artifact: finschia-${{ env.VERSION }}-dawrin-amd64"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: finschia-${{ env.VERSION }}-darwin-amd64.tgz
-          asset_name: finschia-${{ env.VERSION }}-darwin-amd64.tgz
-          asset_content_type: application/octet-stream
-      - name: "Upload artifact: finschia-${{ env.VERSION }}-dawrin-arm64"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: finschia-${{ env.VERSION }}-darwin-arm64.tgz
-          asset_name: finschia-${{ env.VERSION }}-darwin-arm64.tgz
-          asset_content_type: application/octet-stream
-      - name: "Upload artifact: compressed repository source"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: finschia-${{ env.VERSION }}.tgz
-          asset_name: finschia-${{ env.VERSION }}.tgz
-          asset_content_type: application/gzip
+#  create_release:
+#    name: "Create Release"
+#    needs: [ build_for_linux, build_for_darwin ]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: "Set tag as version"
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#
+#      - name: "Download artifacts"
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#      - name: "Extract compressed repository source"
+#        run: tar zxf finschia-${{ env.VERSION }}.tgz --strip-components=1 finschia-${{ env.VERSION }}/RELEASE_NOTE.md
+#      - name: "List artifact files for debugging"
+#        run: "ls -laF"
+#      - name: "Create build report"
+#        run: |
+#          echo "App: finschia" > build_report.txt
+#          echo "Version: ${{ env.VERSION }}" >> build_report.txt
+#          echo "Commit: ${{ github.sha }}" >> build_report.txt
+#          echo "Checksums MD5:" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}-linux-amd64.md5`" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}-linux-arm64.md5`" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}.tgz.md5`" >> build_report.txt
+#          echo "Checksums SHA256:" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}-linux-amd64.sha256`" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}-linux-arm64.sha256`" >> build_report.txt
+#          echo "  `cat finschia-${{ env.VERSION }}.tgz.sha256`" >> build_report.txt
+#      - name: "Create release note"
+#        run: |
+#          cat ./RELEASE_NOTE.md > release_note.txt
+#          echo '' >> release_note.txt
+#          echo '```text' >> release_note.txt
+#          cat ./build_report.txt >> release_note.txt
+#          echo '```' >> build_report.txt
+#      - name: "Create release"
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          body_path: ./release_note.txt
+#          draft: true
+#          prerelease: false
+#
+#      - name: "Upload artifact: finschia-${{ env.VERSION }}-linux-amd64"
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: finschia-${{ env.VERSION }}-linux-amd64.tgz
+#          asset_name: finschia-${{ env.VERSION }}-linux-amd64.tgz
+#          asset_content_type: application/octet-stream
+#      - name: "Upload artifact: finschia-${{ env.VERSION }}-linux-arm64"
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: finschia-${{ env.VERSION }}-linux-arm64.tgz
+#          asset_name: finschia-${{ env.VERSION }}-linux-arm64.tgz
+#          asset_content_type: application/octet-stream
+#      - name: "Upload artifact: finschia-${{ env.VERSION }}-dawrin-amd64"
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: finschia-${{ env.VERSION }}-darwin-amd64.tgz
+#          asset_name: finschia-${{ env.VERSION }}-darwin-amd64.tgz
+#          asset_content_type: application/octet-stream
+#      - name: "Upload artifact: finschia-${{ env.VERSION }}-dawrin-arm64"
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: finschia-${{ env.VERSION }}-darwin-arm64.tgz
+#          asset_name: finschia-${{ env.VERSION }}-darwin-arm64.tgz
+#          asset_content_type: application/octet-stream
+#      - name: "Upload artifact: compressed repository source"
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: finschia-${{ env.VERSION }}.tgz
+#          asset_name: finschia-${{ env.VERSION }}.tgz
+#          asset_content_type: application/gzip
