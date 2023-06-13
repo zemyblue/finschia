@@ -7,27 +7,27 @@ on:
 #      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
 
 jobs:
-  create_tarball:
-    name: "Create Tarball"
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Set tag as version"
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
-      - name: "Checkout code"
-        uses: actions/checkout@v3.1.0
-      - name: "Create compressed repository source"
-        run: |
-          git archive --format=tar --prefix "finschia-${{ env.VERSION }}/" HEAD | gzip -9n > finschia-${{ env.VERSION }}.tgz
-          md5sum finschia-${{ env.VERSION }}.tgz > finschia-${{ env.VERSION }}.tgz.md5
-          sha256sum finschia-${{ env.VERSION }}.tgz > finschia-${{ env.VERSION }}.tgz.sha256
-      - name: "Store compressed source"
-        uses: actions/upload-artifact@v3
-        with:
-          name: release-${{ env.VERSION }}
-          path: |
-            finschia-${{ env.VERSION }}.tgz
-            finschia-${{ env.VERSION }}.tgz.md5
-            finschia-${{ env.VERSION }}.tgz.sha256
+#  create_tarball:
+#    name: "Create Tarball"
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: "Set tag as version"
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#      - name: "Checkout code"
+#        uses: actions/checkout@v3.1.0
+#      - name: "Create compressed repository source"
+#        run: |
+#          git archive --format=tar --prefix "finschia-${{ env.VERSION }}/" HEAD | gzip -9n > finschia-${{ env.VERSION }}.tgz
+#          md5sum finschia-${{ env.VERSION }}.tgz > finschia-${{ env.VERSION }}.tgz.md5
+#          sha256sum finschia-${{ env.VERSION }}.tgz > finschia-${{ env.VERSION }}.tgz.sha256
+#      - name: "Store compressed source"
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: release-${{ env.VERSION }}
+#          path: |
+#            finschia-${{ env.VERSION }}.tgz
+#            finschia-${{ env.VERSION }}.tgz.md5
+#            finschia-${{ env.VERSION }}.tgz.sha256
 
   build_for_linux_static:
     name: "Release Build for Linux(static)"
@@ -69,7 +69,7 @@ jobs:
             exit 1
           fi
           sha256sum ./${{ matrix.libwasmvm }} | grep "${CHECKSUM}"
-          mv ./${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
+          sudo mv ./${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
       - name: "Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}"
         run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: "Build release bundle: linux-${{ matrix.arch }}"
