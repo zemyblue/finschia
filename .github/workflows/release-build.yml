@@ -56,10 +56,11 @@ jobs:
           check-latest: true
       - name: "Download libwasmvm"
         run: |
+          pwd
           WASMVM_VERSION=`go list -m github.com/Finschia/wasmvm | awk '{print $2}' | grep -E -o 'v([0-9]{1,3}[\.]){2}[0-9]{1,3}\-([0-9]{1,3}[\.]){2}[0-9]{1,3}'`
           echo ${WASMVM_VERSION}
           curl -L -f -o ./checksums.txt https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/checksums.txt
-          curl -L -f -o /lib/${{ matrix.libwasmvm }}  https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/${{ matrix.libwasmvm }}
+          curl -L -f -o ./${{ matrix.libwasmvm }}  https://github.com/Finschia/wasmvm/releases/download/${WASMVM_VERSION}/${{ matrix.libwasmvm }}
           CHECKSUM=`grep ${{ matrix.libwasmvm }} ./checksums.txt | awk '{print $1}'`
           if [ -z "${CHECKSUM}" ]
           then
@@ -67,8 +68,8 @@ jobs:
             cat ./checksums.txt
             exit 1
           fi
-          sha256sum /lib/${{ matrix.libwasmvm }} | grep "${CHECKSUM}"
-          ln -s /lib/${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
+          sha256sum ./${{ matrix.libwasmvm }} | grep "${CHECKSUM}"
+          mv ./${{ matrix.libwasmvm }} /usr/lib/libwasmvm_muslc.a
       - name: "Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}"
         run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
       - name: "Build release bundle: linux-${{ matrix.arch }}"
