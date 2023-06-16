@@ -31,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ amd64, arm64 ]
+#        arch: [ amd64, arm64 ]
+        arch: [ amd64 ]
 
     steps:
       - name: Set tag as version
@@ -124,7 +125,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/sha256sum.txt
+          asset_path: ./sha256sum.txt
           asset_name: sha256sum.txt
           asset_content_type: application/file
 
@@ -134,19 +135,19 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/fnsad-${{ env.VERSION }}-linux-amd64
+          asset_path: ./fnsad-${{ env.VERSION }}-linux-amd64
           asset_name: fnsad-${{ env.VERSION }}-linux-amd64
           asset_content_type: application/binary
 
-      - name: Upload linux-arm64 artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/fnsad-${{ env.VERSION }}-linux-arm64
-          asset_name: fnsad-${{ env.VERSION }}-linux-arm64
-          asset_content_type: application/binary
+#      - name: Upload linux-arm64 artifact
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: ./fnsad-${{ env.VERSION }}-linux-arm64
+#          asset_name: fnsad-${{ env.VERSION }}-linux-arm64
+#          asset_content_type: application/binary
 
       - name: Upload compression
         uses: actions/upload-release-asset@v1
@@ -154,7 +155,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/fnsad-${{ env.VERSION }}.tar.gz
+          asset_path: ./fnsad-${{ env.VERSION }}.tar.gz
           asset_name: fnsad-${{ env.RELEASE_VERSION }}.tar.gz
           asset_content_type: application/gzip
 
