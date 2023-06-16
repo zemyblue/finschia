@@ -94,7 +94,7 @@ jobs:
 
       - name: Create sha256sum
         run: |
-          sha256sum * >> sha256sum.txt
+          sha256sum fnsad-${{ env.VERSION }}* >> sha256sum.txt
           cat sha256sum.txt
           
       - name: Create release note
@@ -103,23 +103,23 @@ jobs:
           echo '' >> release_note.txt
           echo '```text' >> release_note.txt
           cat ./build_report.txt >> release_note.txt
-          echo '```' >> build_report.txt
-          cat build_report.txt
+          echo '```' >> release_note.txt
+          cat release_note.txt
 
       - name: List artifact files for debugging
         run: ls -laF
 
-#      - name: Create release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          release_name: Release ${{ github.ref }}
-#          body_path: ./release_note.txt
-#          draft: true
-#          prerelease: false
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: ./release_note.txt
+          draft: true
+          prerelease: false
 
       - name: Upload sha256sum
         uses: actions/upload-release-asset@v1
@@ -387,7 +387,7 @@ jobs:
 #          echo '' >> release_note.txt
 #          echo '```text' >> release_note.txt
 #          cat ./build_report.txt >> release_note.txt
-#          echo '```' >> build_report.txt
+#          echo '```' >> release_note.txt
 #      - name: "Create release"
 #        id: create_release
 #        uses: actions/create-release@v1
