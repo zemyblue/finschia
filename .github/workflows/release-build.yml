@@ -74,6 +74,9 @@ jobs:
         with:
           name: release-${{ env.VERSION }}
 
+      - name: Extract compressed repository source
+        run: tar zxvf fnsad-${{ env.VERSION }}.tar.gz --strip-components=1 fnsad-${{ env.VERSION }}/RELEASE_NOTE.md
+
       - name: List artifact files for debugging
         run: ls -laF
 
