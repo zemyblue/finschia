@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ amd64, arm64 ]
+        arch: [ amd64 ]
 
     steps:
       - name: Set tag as version
@@ -75,7 +75,8 @@ jobs:
           name: release-${{ env.VERSION }}
 
       - name: Extract compressed repository source
-        run: tar zxvf fnsad-${{ env.VERSION }}.tar.gz --strip-components=1 fnsad-${{ env.VERSION }}/RELEASE_NOTE.md
+        run: |
+          tar zxvf fnsad-${{ env.VERSION }}.tar.gz --strip-components=1 fnsad-${{ env.VERSION }}/RELEASE_NOTE.md
 
       - name: List artifact files for debugging
         run: ls -laF
@@ -86,10 +87,16 @@ jobs:
           echo "Version: ${{ env.VERSION }}" >> build_report.txt
           echo "Commit: ${{ github.sha }}" >> build_report.txt
           echo "Checksums MD5:" >> build_report.txt
-          md5sum * | sed 's/^/ /' >> build_report.txt
+          md5sum fnsad-${{ env.VERSION }}* | sed 's/^/ /' >> build_report.txt
           echo "Checksums SHA256:" >> build_report.txt
-          sha256sum * | sed 's/^/ /' >> build_report.txt
+          sha256sum fnsad-${{ env.VERSION }}* | sed 's/^/ /' >> build_report.txt
+          cat build_report.txt
 
+      - name: Create sha256sum
+        run: |
+          sha256sum * >> sha256sum.txt
+          cat sha256sum.txt
+          
       - name: Create release note
         run: |
           cat ./RELEASE_NOTE.md > release_note.txt
@@ -97,22 +104,22 @@ jobs:
           echo '```text' >> release_note.txt
           cat ./build_report.txt >> release_note.txt
           echo '```' >> build_report.txt
+          cat build_report.txt
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body_path: ./release_note.txt
-          draft: true
-          prerelease: false
+      - name: List artifact files for debugging
+        run: ls -laF
 
-      - name: Create sha256sum
-        run: |
-          sha256sum * >> sha256sum.txt
+#      - name: Create release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          body_path: ./release_note.txt
+#          draft: true
+#          prerelease: false
 
       - name: Upload sha256sum
         uses: actions/upload-release-asset@v1
