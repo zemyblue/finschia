@@ -50,7 +50,7 @@ jobs:
         run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
 
       - name: Store artifact linux-${{ matrix.arch }}
-        uses: actions/upoload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
           name: release-${{ env.VERSION }}
           path: |
