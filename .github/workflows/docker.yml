@@ -12,7 +12,8 @@ on:
 
 env:
   registry: docker.io
-  repository: finschia/finschianode
+  DOCKER_REPOSITORY: zemyblue/finschianode
+  RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian11
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,18 +37,40 @@ jobs:
           registry: ${{env.registry}}
           username: ${{secrets.DOCKERHUB_USERNAME}}
           password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Find go version and ost version
+        id: find_go_version
+        run: |
+          GO_VERSION=$(cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
+          OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')
+          echo "GO_VERSION=$GO_VERSION" >> $GITHUB_ENV
+          echo "OST_VERSION=$OST_VERSION" >> $GITHUB_ENV
+
+      - name: Parse tag
+        id: tag
+        run: |
+          VERSION=$(echo ${{ github.ref_name }} | sed "s/v//")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: extract metadata for docker
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{env.registry}}/${{env.repository}}
+          images: ${{env.registry}}/${{env.DOCKER_REPOSITORY}}
           tags: |
             type=semver,pattern={{version}}
-      - name: docker build
+      - name: Build and push (distroless)
         uses: docker/build-push-action@v4
         with:
+          file: Dockerfile
+          context: .
           push: ${{github.event_name != 'pull_request'}}
-          build-args: ARCH=x86_64
+          platforms: linux/amd64, linux/arm64
+          build-args:
+            GO_VERSOIN=${{ env.GO_VERSION }}
+            RUNNER_IMAGE=${{ env.RUNNER_BASE_IMAGE_DISTROLESS }}
+            GIT_VERSION=${{ env.VERSION }}
+            GIT_COMMIT=${{ github.sha }}
+            OST_VERSION=${{ env.OST_VERSION }}
           tags: ${{steps.meta.outputs.tags}}
           labels: ${{steps.meta.outputs.labels}}
-          platforms: linux/amd64
