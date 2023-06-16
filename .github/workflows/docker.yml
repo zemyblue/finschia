@@ -74,5 +74,6 @@ jobs:
             GIT_VERSION=${{ env.VERSION }}
             GIT_COMMIT=${{ github.sha }}
             OST_VERSION=${{ env.OST_VERSION }}
-          tags: ${{steps.meta.outputs.tags}}
+          tags: |
+            ${{ env.DOCKER_REPOSITORY }}:${{ env.VERSION }}
           labels: ${{steps.meta.outputs.labels}}
