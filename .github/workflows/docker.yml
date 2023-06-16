@@ -45,20 +45,20 @@ jobs:
       - name: Find go version
         id: find_go_version
         run: |
-          GO_VERSION=$(cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
-          echo "GO_VERSION=$GO_VERSION" >> $GITHUB_ENV
+          echo "GO_VERSION=$(cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)" >> $GITHUB_ENV
+#          GO_VERSION=$(cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
 
       - name: Find Ostracon version
         id: find_ostracon_version
         run: |
-          OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')
-          echo "OST_VERSION=$OST_VERSION" >> $GITHUB_ENV
+          echo "OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')" >> $GITHUB_ENV
+#          OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')
 
       - name: Parse tag
         id: tag
         run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed "s/v//")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ github.ref_name }} | sed "s/v//")" >> $GITHUB_ENV
+#          VERSION=$(echo ${{ github.ref_name }} | sed "s/v//")
 
       - name: Extract metadata for docker
         id: meta
