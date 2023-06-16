@@ -16,8 +16,6 @@ ARG GIT_COMMIT
 ARG OST_VERSION
 
 # Set up OS dependencies
-#ENV PACKAGES curl wget make cmake git libc-dev bash gcc g++ linux-headers eudev-dev python3 perl
-#RUN apk add --update --no-cache $PACKAGES
 RUN apk add --no-cache ca-certificates build-base linux-headers curl
 
 # Set WORKDIR to finschia
