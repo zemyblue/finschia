@@ -2,10 +2,10 @@ name: Build & Push
 # Build & Push builds the finschia docker image on every tag push
 
 on:
-  pull_request:
+#  pull_request:
 #    branches:
 #      - main
-  push:
+#  push:
 #    tags:
 #      - "v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. v1.0, v20.15.10
 #      - "v[0-9]+.[0-9]+.[0-9]+-*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-alpha1
@@ -15,7 +15,7 @@ env:
   DOCKER_REPOSITORY: zemyblue/finschianode
   RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian11
 jobs:
-  build:
+  docker_build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -49,9 +49,10 @@ jobs:
       - name: Parse tag
         id: tag
         run: |
-#          VERSION=$(echo ${{ github.ref_name }} | sed "s/v//")
+          VERSION_BACK=$(echo ${{ github.ref_name }} | sed "s/v//")
           VERSION="v0.0.0-test"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
 
       - name: extract metadata for docker
         id: meta
