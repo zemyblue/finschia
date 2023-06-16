@@ -42,12 +42,16 @@ jobs:
           username: ${{secrets.DOCKERHUB_USERNAME}}
           password: ${{secrets.DOCKERHUB_TOKEN}}
 
-      - name: Find go version and ostracon version
+      - name: Find go version
         id: find_go_version
         run: |
           GO_VERSION=$(cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
-          OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')
           echo "GO_VERSION=$GO_VERSION" >> $GITHUB_ENV
+
+      - name: Find Ostracon version
+        id: find_ostracon_version
+        run: |
+          OST_VERSION=$(go list -m github.com/Finschia/ostracon | sed 's:.* ::')
           echo "OST_VERSION=$OST_VERSION" >> $GITHUB_ENV
 
       - name: Parse tag
