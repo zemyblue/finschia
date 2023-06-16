@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ amd64, armd64 ]
+        arch: [ amd64, arm64 ]
 
     steps:
       - name: Set tag as version
