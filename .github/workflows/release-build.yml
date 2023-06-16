@@ -3,8 +3,8 @@ name: "Release Build"
 on:
   push:
     tags: # Push events to matching v*, i.e. v20.15.10, v0.1.2-rc34
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
+#      - "v[0-9]+.[0-9]+.[0-9]+"
+#      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
 
 jobs:
   create_tarball:
@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Set tag as version"
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+        run: echo "VERSION=v0.0.0" >> $GITHUB_ENV
       - name: "Checkout code"
         uses: actions/checkout@v3.1.0
       - name: "Create compressed repository source"
@@ -31,11 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [ amd64 ]
+        arch: [ amd64, armd64 ]
 
     steps:
       - name: Set tag as version
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+        run: echo "VERSION=v0.0.0" >> $GITHUB_ENV
 
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -64,7 +66,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set tag as version
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+#        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV  # set env.VERSION=v0.0.0
+        run: echo "VERSION=v0.0.0" >> $GITHUB_ENV
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -110,7 +113,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.token }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
