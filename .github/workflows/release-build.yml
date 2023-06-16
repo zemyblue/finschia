@@ -44,12 +44,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}
+        run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
+
       - name: Compile finschia
         run: |
           make build-reproducible-${{ matrix.arch }}
-
-      - name: Set ID=${{ env.VERSION }}-linux-${{ matrix.arch }}
-        run: echo "ID=${{ env.VERSION }}-linux-${{ matrix.arch }}" >> $GITHUB_ENV
+          cd ./build
+          mv fnsad-linux-${{ matrix.arch }} fnsad-${{ env.ID }}
 
       - name: Store artifact linux-${{ matrix.arch }}
         uses: actions/upload-artifact@v3
