@@ -14,6 +14,8 @@ env:
   registry: docker.io
   DOCKER_REPOSITORY: zemyblue/finschianode
   RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian11
+  RUNNER_BASE_IMAGE_NONROOT: gcr.io/distroless/static-debian11:nonroot
+  RUNNER_BASE_IMAGE_ALPINE: alpine:3.17
 jobs:
   docker_build_and_push:
     runs-on: ubuntu-latest
@@ -84,4 +86,40 @@ jobs:
             OST_VERSION=${{ env.OST_VERSION }}
           tags: |
             ${{ env.DOCKER_REPOSITORY }}:${{ env.VERSION }}
+          labels: ${{steps.meta.outputs.labels}}
+
+      # Alpine Docker image
+      - name: Build and push (alpine)
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile
+          context: .
+          push: ${{github.event_name != 'pull_request'}}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            GO_VERSION=${{ env.GO_VERSION }}
+            RUNNER_IMAGE=${{ env.RUNNER_BASE_IMAGE_ALPINE }}
+            GIT_VERSION=${{ env.VERSION }}
+            GIT_COMMIT=${{ github.sha }}
+            OST_VERSION=${{ env.OST_VERSION }}
+          tags: |
+            ${{ env.DOCKER_REPOSITORY }}:${{ env.VERSION }}-alpine
+          labels: ${{steps.meta.outputs.labels}}
+
+      # Distroless nonroot Docker image
+      - name: Build and push (nonroot)
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile
+          context: .
+          push: ${{github.event_name != 'pull_request'}}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            GO_VERSION=${{ env.GO_VERSION }}
+            RUNNER_IMAGE=${{ env.RUNNER_BASE_IMAGE_NONROOT }}
+            GIT_VERSION=${{ env.VERSION }}
+            GIT_COMMIT=${{ github.sha }}
+            OST_VERSION=${{ env.OST_VERSION }}
+          tags: |
+            ${{ env.DOCKER_REPOSITORY }}:${{ env.VERSION }}-nonroot
           labels: ${{steps.meta.outputs.labels}}

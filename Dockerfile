@@ -22,10 +22,10 @@ RUN apk add --no-cache ca-certificates build-base linux-headers curl
 WORKDIR /finschia-build/finschia
 
 # prepare dbbackend before building; this can be cached
-COPY ./Makefile ./
-COPY ./contrib ./contrib
-COPY ./sims.mk ./
-RUN make dbbackend FINSCHIA_BUILD_OPTIONS="$(FINSCHIA_BUILD_OPTIONS)"
+#COPY ./Makefile ./
+#COPY ./contrib ./contrib
+#COPY ./sims.mk ./
+#RUN make dbbackend FINSCHIA_BUILD_OPTIONS="$(FINSCHIA_BUILD_OPTIONS)"
 
 # Install GO dependencies
 COPY go.mod go.sum ./
