@@ -57,8 +57,8 @@ github.com/Finschia/r2ishiguro_vrf v0.1.2 h1:lDBz6NQMx1pw5I3End6xFmXpM//7KcmTr3K
 github.com/Finschia/r2ishiguro_vrf v0.1.2/go.mod h1:OHRtvzcJnfIrcJ0bvPNktJozRFAyZFuv56E9R3/qB+Y=
 github.com/Finschia/wasmd v0.1.5-0.20230803051028-dedcd9ec5ba0 h1:JF2OEvjiHJgYVW0v2V+UMo8W21POZ2QIyugnWf8qpb4=
 github.com/Finschia/wasmd v0.1.5-0.20230803051028-dedcd9ec5ba0/go.mod h1:5s8ySYL/QWnQ3AbcgpLQgNXlSWFf74HbRpXKhkpiUlA=
-github.com/Finschia/wasmvm v1.1.1-0.11.2.0.20230418093236-ce70a3856778 h1:V+iocQkc3zvpgdn+nCLZ9kPM7D7u6v2Br+EkOIhvjbY=
-github.com/Finschia/wasmvm v1.1.1-0.11.2.0.20230418093236-ce70a3856778/go.mod h1:uCHU7ZRQ/V+WPRXr6Ak9Uu2oe2MVeO8yGZnGKU1B3NY=
+github.com/Finschia/wasmvm v1.1.1-0.11.2.0.20230724130821-4c2f968164c3 h1:Zun3V+Uo23B7JtAu0dGa3qccbM/rqaffores2Mv9Vqc=
+github.com/Finschia/wasmvm v1.1.1-0.11.2.0.20230724130821-4c2f968164c3/go.mod h1:NvaR6R52gFtNaKh+y/5fyUjS5Q2QfE8TJzv0bdSsWqQ=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 h1:TngWCqHvy9oXAN6lEVMRuU21PR1EtLVZJmdB18Gu3Rw=

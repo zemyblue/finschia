@@ -12,6 +12,7 @@
 output
 vendor
 build
+temp
 tools/bin/*
 examples/build/*
 docs/_build
@@ -51,3 +52,5 @@ dependency-graph.png
 # docs
 /client/docs/tmp-swagger-gen/
 /client/docs/node_modules/
+
+dist/
