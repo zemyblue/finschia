@@ -43,7 +43,7 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 ldflags = -X github.com/Finschia/finschia-sdk/version.Name=finschia \
-		  -X github.com/Finschia/finschia-sdk/version.AppName=finschia \
+		  -X github.com/Finschia/finschia-sdk/version.AppName=fnsad \
 		  -X github.com/Finschia/finschia-sdk/version.Version=$(VERSION) \
 		  -X github.com/Finschia/finschia-sdk/version.Commit=$(COMMIT) \
 		  -X github.com/Finschia/finschia-sdk/types.DBBackend=goleveldb \
@@ -117,6 +117,7 @@ build-reproducible: go.sum
 		--platform $(TARGET_PLATFORM) \
 		-t finschia/finschianode:local-$(ARCH) \
 		--load \
+		--progress=plain \
 		-f Dockerfile .
 	$(DOCKER) rm -f finschiabinary || true
 	$(DOCKER) create -ti --name finschiabinary finschia/finschianode:local-$(ARCH)
@@ -233,3 +234,56 @@ proto-swagger-gen:
 	./scripts/generate-docs.sh
 	statik -src=client/docs/swagger-ui -dest=client/docs -f -m
 .PHONY: proto-swagger-gen
+
+
+###############################################################################
+###                                Release                                  ###
+###############################################################################
+
+GORELEASER_IMAGE := ghcr.io/goreleaser/goreleaser-cross:v$(GO_VERSION)
+PACKAGE_NAME := github.com/Finschia/finschia
+
+ifdef GITHUB_TOKEN
+release:
+	docker run \
+		--rm \
+		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
+		-e WASMVM_VERSION=$(WASMVM_VERSION) \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/$(PACKAGE_NAME) \
+		-w /go/src/$(PACKAGE_NAME) \
+		$(GORELEASER_IMAGE) \
+		release \
+		--clean
+else
+release:
+	@echo "Error: GITHUB_TOKEN is not defined. Please define it before running 'make release'."
+endif
+
+release-dry-run:
+	docker run \
+		--rm \
+		-e WASMVM_VERSION=$(WASMVM_VERSION) \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/$(PACKAGE_NAME) \
+		-w /go/src/$(PACKAGE_NAME) \
+		$(GORELEASER_IMAGE) \
+		release \
+		--clean \
+		--skip-publish
+
+release-snapshot:
+	docker run \
+		--rm \
+		-e WASMVM_VERSION=$(WASMVM_VERSION) \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/$(PACKAGE_NAME) \
+		-w /go/src/$(PACKAGE_NAME) \
+		$(GORELEASER_IMAGE) \
+		release \
+		--clean \
+		--snapshot \
+		--skip-validate \
+		--skip-publish
+
+.PHONY: release release-dry-run release-snapshot
