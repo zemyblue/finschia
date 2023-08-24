@@ -19,6 +19,7 @@ GO_VERSION := $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
 OST_VERSION := $(shell go list -m github.com/Finschia/ostracon | sed 's:.* ::') # grab everything after the space in "github.com/Finschia/ostracon v0.34.7"
 WASMVM_VERSION := $(shell go list -m github.com/Finschia/wasmvm | awk '{print $2}' | grep -o 'v\d\+\.\d\+\.\d\+-\d\+\.\d\+\.\d\+')
 DOCKER := $(shell which docker)
+LEDGER_ENABLED ?= true
 BUILDDIR ?= $(CURDIR)/build
 ARCH ?= amd64
 TARGET_PLATFORM = linux/amd64
@@ -32,7 +33,11 @@ endif
 export GO111MODULE = on
 
 # process build tags
-build_tags = netgo static_wasm muslc ledger
+build_tags = netgo static_wasm muslc
+ifeq ($(LEDGER_ENABLED),true)
+	build_tags += ledger
+endif
+
 build_tags += $(BUILD_TAGS)
 build_tags := $(strip $(build_tags))
 
