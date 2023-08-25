@@ -9,7 +9,7 @@ builds:
     binary: fnsad
     hooks:
       pre:
-        - wget https://github.com/zemyblue/wasmvm/releases/download/{{ .Env.WASMVM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
+        - wget https://github.com/Finschia/wasmvm/releases/download/{{ .Env.WASMVM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
     goos:
       - darwin
     goarch:
@@ -45,7 +45,7 @@ builds:
     binary: fnsad
     hooks:
       pre:
-        - wget https://github.com/zemyblue/wasmvm/releases/download/{{ .Env.WASMVM_VERSION }}/libwasmvm_muslc.x86_64.a -O /usr/lib/x86_64-linux-gnu/libwasmvm_muslc.a
+        - wget https://github.com/Finschia/wasmvm/releases/download/{{ .Env.WASMVM_VERSION }}/libwasmvm_muslc.x86_64.a -O /usr/lib/x86_64-linux-gnu/libwasmvm_muslc.a
         - wget https://github.com/Finschia/wasmvm/releases/download/{{ .Env.WASMVM_VERSION }}/libwasmvm_muslc.aarch64.a -O /usr/lib/aarch64-linux-gnu/libwasmvm_muslc.a
     goos:
       - linux
