@@ -17,7 +17,7 @@ endif
 SDK_PACK := $(shell go list -m github.com/Finschia/finschia-sdk | sed  's/ /\@/g')
 GO_VERSION := $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
 OST_VERSION := $(shell go list -m github.com/Finschia/ostracon | sed 's:.* ::') # grab everything after the space in "github.com/Finschia/ostracon v0.34.7"
-WASMVM_VERSION := $(shell go list -m github.com/Finschia/wasmvm | awk '{print $2}' | grep -o 'v\d\+\.\d\+\.\d\+-\d\+\.\d\+\.\d\+')
+WASMVM_VERSION=$(shell go list -m github.com/Finschia/wasmvm | awk '{print $$2}')
 DOCKER := $(shell which docker)
 LEDGER_ENABLED ?= true
 BUILDDIR ?= $(CURDIR)/build
@@ -83,12 +83,12 @@ wasmvmlib: $(TEMPDIR)/
 	@mkdir -p $(TEMPDIR)/lib
     ifeq (",$(wildcard $(TEMPDIR)/lib/libwasmvm*.a)")
         ifeq ($(OS_NAME),darwin)
-	        wget https://github.com/zemyblue/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvmstatic_darwin.a -O $(TEMPDIR)/lib/libwasmvmstatic_darwin.a
+	        wget https://github.com/Finschia/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvmstatic_darwin.a -O $(TEMPDIR)/lib/libwasmvmstatic_darwin.a
         else
             ifeq ($(ARCH),amd64)
-	            wget https://github.com/zemyblue/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvm_muslc.x86_64.a -O $(TEMPDIR)/lib/libwasmvm_muslc.a
+	            wget https://github.com/Finschia/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvm_muslc.x86_64.a -O $(TEMPDIR)/lib/libwasmvm_muslc.a
             else
-	            wget https://github.com/zemyblue/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvm_muslc.aarch64.a -O $(TEMPDIR)/lib/libwasmvm_muslc.a
+	            wget https://github.com/Finschia/wasmvm/releases/download/$(WASMVM_VERSION)/libwasmvm_muslc.aarch64.a -O $(TEMPDIR)/lib/libwasmvm_muslc.a
             endif
         endif
     endif

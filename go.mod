@@ -25,7 +25,7 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/Finschia/r2ishiguro_vrf v0.1.2 // indirect
-	github.com/Finschia/wasmvm v1.1.1-0.11.2.0.20230724130821-4c2f968164c3 // indirect
+	github.com/Finschia/wasmvm v1.1.1-0.11.3-rc1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
