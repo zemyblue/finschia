@@ -66,7 +66,7 @@ CGO_LDFLAGS := -L$(TEMPDIR)/lib
 ifeq ($(OS_NAME),darwin)
 	CGO_LDFLAGS += -lz -lbz2
 else
-	CGO_LDFLAGS += -static -lwasmvm_muslc
+	CGO_LDFLAGS += -static -lwasmvm_muslc -lm
 endif
 
 
