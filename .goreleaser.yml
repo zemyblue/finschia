@@ -109,3 +109,7 @@ archives:
 checksum:
   name_template: "checksum.txt"
   algorithm: sha256
+
+# Docs: https://goreleaser.com/customization/changelog/
+changelog:
+  skip: true
