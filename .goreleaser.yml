@@ -87,17 +87,14 @@ archives:
   - format: binary
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
 
-#  - id: binaries
-#    builds:
-#      - fnsad-darwin-universal
-#      - fnsad-linux-amd64
-#      - fnsad-linux-arm64
-#      - fnsad-darwin-amd64
-#      - fnsad-darwin-arm64
-#    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-#    format: binary
-#    files:
-#      - none*
+  - format: tar.gz
+    wrap_in_directory: true
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - RELEASE_CHANGELOG.md
+    rlcp: true
 
 release:
   name_template: "v{{.Version}}"
@@ -106,6 +103,9 @@ release:
 checksum:
   name_template: "sha256sum-v{{ .Version }}.txt"
   algorithm: sha256
+
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
 
 changelog:
   skip: false
