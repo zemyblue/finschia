@@ -93,7 +93,6 @@ archives:
     files:
       - LICENSE
       - RELEASE_CHANGELOG.md
-    rlcp: true
 
 release:
   name_template: "v{{.Version}}"
