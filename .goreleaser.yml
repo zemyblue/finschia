@@ -84,17 +84,6 @@ universal_binaries:
   - id: darwin
 
 archives:
-  - id: zipped
-    builds:
-      - fnsad-darwin-universal
-      - fnsad-linux-amd64
-      - fnsad-linux-arm64
-      - fnsad-darwin-amd64
-      - fnsad-darwin-arm64
-    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-    format: binary
-    files:
-      - none*
   - id: binaries
     builds:
       - fnsad-darwin-universal
@@ -108,12 +97,12 @@ archives:
       - none*
 
 release:
-  prerelease: true
   name_template: "v{{.Version}}"
+  draft: true
 
 checksum:
   name_template: "sha256sum-v{{ .Version }}.txt"
   algorithm: sha256
 
 changelog:
-  skip: false
+  skip: true
