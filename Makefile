@@ -265,6 +265,7 @@ ifdef GITHUB_TOKEN
 release:
 	docker run \
 		--rm \
+		--platform linux/amd64 \
 		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e WASMVM_VERSION=$(WASMVM_VERSION) \
 		-e OST_VERSION=$(OST_VERSION) \
@@ -283,6 +284,7 @@ endif
 release-dry-run:
 	docker run \
 		--rm \
+		--platform linux/amd64 \
 		-e WASMVM_VERSION=$(WASMVM_VERSION) \
 		-e OST_VERSION=$(OST_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -297,6 +299,7 @@ release-dry-run:
 release-snapshot:
 	docker run \
 		--rm \
+		--platform linux/amd64 \
 		-e WASMVM_VERSION=$(WASMVM_VERSION) \
 		-e OST_VERSION=$(OST_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \

@@ -84,17 +84,20 @@ universal_binaries:
   - id: darwin
 
 archives:
-  - id: binaries
-    builds:
-      - fnsad-darwin-universal
-      - fnsad-linux-amd64
-      - fnsad-linux-arm64
-      - fnsad-darwin-amd64
-      - fnsad-darwin-arm64
+  - format: binary
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-    format: binary
-    files:
-      - none*
+
+#  - id: binaries
+#    builds:
+#      - fnsad-darwin-universal
+#      - fnsad-linux-amd64
+#      - fnsad-linux-arm64
+#      - fnsad-darwin-amd64
+#      - fnsad-darwin-arm64
+#    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+#    format: binary
+#    files:
+#      - none*
 
 release:
   name_template: "v{{.Version}}"
@@ -105,4 +108,4 @@ checksum:
   algorithm: sha256
 
 changelog:
-  skip: true
+  skip: false
