@@ -84,10 +84,12 @@ universal_binaries:
   - id: darwin
 
 archives:
-  - format: binary
+  - id: binaries
+    format: binary
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
 
-  - format: tar.gz
+  - id: zip
+    format: tar.gz
     wrap_in_directory: true
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
