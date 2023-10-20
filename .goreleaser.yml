@@ -92,7 +92,6 @@ archives:
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - LICENSE
-      - README.md
       - RELEASE_CHANGELOG.md
     rlcp: true
 
